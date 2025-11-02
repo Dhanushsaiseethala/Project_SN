@@ -4,9 +4,10 @@ requests
 networkx
 matplotlib
 numpy
-node2vec==0.4.3
+nodevectors
 hdbscan
 scikit-learn
+
 
 
 
