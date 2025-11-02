@@ -998,9 +998,9 @@ elif page == "Ethereum Bridge Transaction Finder":
 elif page == "Bitcoin Bridge Transaction Finder":
     btc_bridge_finder()
 elif page == "Ethereum Transaction Clustering":
-    eth_transaction_clustering()
+    eth_address_clustering()
 elif page == "Bitcoin Transaction Clustering":
-    btc_transaction_clustering()
+    btc_address_clustering()
 elif page == "Bitcoin Suspicious Transaction Analyzer":
     btc_suspicious_analyzer()
 elif page == "Ethereum Suspicious Transaction Analyzer":
@@ -1010,6 +1010,7 @@ else:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
+
 
 
 
