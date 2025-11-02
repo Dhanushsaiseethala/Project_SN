@@ -563,14 +563,15 @@ def eth_transaction_clustering():
                 G.add_edge(from_addr, to_addr, value=value, tx_hash=tx_hash)
         return G
 
-    def embed_graph(G):
-        if G.number_of_nodes() == 0:
-            return [], []
-        node2vec = Node2Vec(G, dimensions=16, walk_length=10, num_walks=100, workers=1)
-        model = node2vec.fit(window=5, min_count=1)
-        nodes = list(G.nodes())
-        embeddings = [model.wv.get_vector(n) for n in nodes]
-        return nodes, embeddings
+def embed_graph(G):
+    if G.number_of_nodes() == 0:
+        return [], []
+    # Convert to undirected graph (recommended by nodevectors for Node2Vec)
+    UG = G.to_undirected()
+    node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
+    embeddings = node2vec.fit_transform(UG)
+    nodes = list(UG.nodes)
+    return nodes, embeddings
 
     def cluster_with_hdbscan(embeddings):
         if len(embeddings) == 0:
@@ -697,14 +698,16 @@ def btc_transaction_clustering():
                     G.add_edge(src, dest, value=val, txid=txid, timestamp=ts)
         return G
 
-    def embed_graph(G):
-        if G.number_of_nodes() == 0:
-            return [], []
-        node2vec = Node2Vec(G, dimensions=16, walk_length=10, num_walks=100, workers=1)
-        model = node2vec.fit(window=5, min_count=1)
-        nodes = list(G.nodes())
-        embeddings = [model.wv.get_vector(n) for n in nodes]
-        return nodes, embeddings
+def embed_graph(G):
+    if G.number_of_nodes() == 0:
+        return [], []
+    # Convert to undirected graph (recommended by nodevectors for Node2Vec)
+    UG = G.to_undirected()
+    node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
+    embeddings = node2vec.fit_transform(UG)
+    nodes = list(UG.nodes)
+    return nodes, embeddings
+
 
     def cluster_with_hdbscan(embeddings):
         if len(embeddings) == 0:
@@ -1164,6 +1167,7 @@ else:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
+
 
 
 
