@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import pandas as pd
+import networkx as ns
 import matplotlib.pyplot as plt
 import numpy as np
 from node2vec import Node2Vec
@@ -1163,4 +1164,5 @@ else:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
+
 
