@@ -1,8 +1,10 @@
 streamlit
 pandas
-numpy
 requests
 networkx
 matplotlib
+numpy
+node2vec
 hdbscan
 scikit-learn
+
