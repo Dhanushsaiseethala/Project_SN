@@ -9,6 +9,7 @@ hdbscan
 scikit-learn
 networkx==2.8.8
 gensim
+openai
 
 
 
