@@ -521,6 +521,7 @@ def btc_bridge_finder():
     st.info("Bitcoin Bridge transaction finder not implemented yet.")
 
 # -------- Ethereum Transaction Clustering --------
+# -------- Ethereum Transaction Clustering --------
 def eth_transaction_clustering():
     st.markdown("""
     <style>
@@ -542,7 +543,7 @@ def eth_transaction_clustering():
     <hr>
     """, unsafe_allow_html=True)
 
-    wallet = st.text_input("Ethereum Wallet Address for Clustering", value="0x1fD35bB2FFa949Fd90a47a945B5487575F24bfaB", max_chars=42)
+    wallet = st.text_input("Ethereum Wallet Address for Clustering", value="", max_chars=42)
 
     def fetch_eth_txs_v2(wallet):
         url = f"{BASE_URL_ETH_V2}?chainid=1&module=account&action=txlist&address={wallet}&page=1&offset=10000&sort=asc&apikey={ETHERSCAN_API_KEY}"
@@ -564,17 +565,14 @@ def eth_transaction_clustering():
                 G.add_edge(from_addr, to_addr, value=value, tx_hash=tx_hash)
         return G
 
-import streamlit as st
-from nodevectors import Node2Vec
-
-def embed_graph(G):
-    if G.number_of_nodes() == 0:
-        return [], []
-    UG = G.to_undirected()
-    node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
-    embeddings = node2vec.fit_transform(UG)
-    nodes = list(UG.nodes)
-    return nodes, embeddings
+    def embed_graph(G):
+        if G.number_of_nodes() == 0:
+            return [], []
+        UG = G.to_undirected()
+        node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
+        embeddings = node2vec.fit_transform(UG)
+        nodes = list(UG.nodes)
+        return nodes, embeddings
 
     def cluster_with_hdbscan(embeddings):
         if len(embeddings) == 0:
@@ -615,7 +613,9 @@ def embed_graph(G):
         plt.grid(True, alpha=0.3)
         st.pyplot(plt)
 
-    if st.button("Cluster & Visualize - ETH"):
+    # THIS ENSURES BUTTON IS ALWAYS THERE
+    cluster_btn = st.button("Cluster & Visualize - ETH")
+    if cluster_btn:
         with st.spinner("Fetching and clustering transactions..."):
             txs = fetch_eth_txs_v2(wallet)
             if not txs:
@@ -667,7 +667,7 @@ def btc_transaction_clustering():
     <hr>
     """, unsafe_allow_html=True)
 
-    wallet = st.text_input("Bitcoin Wallet Address for Clustering", value="bc1qfcmp4gmuz2uhkaazluexhwm32repaj78kc9jsw", max_chars=42)
+    wallet = st.text_input("Bitcoin Wallet Address for Clustering", value="", max_chars=42)
     MAX_TXS = 100
 
     def fetch_txs(address, max_count=MAX_TXS):
@@ -701,18 +701,14 @@ def btc_transaction_clustering():
                     G.add_edge(src, dest, value=val, txid=txid, timestamp=ts)
         return G
 
-import streamlit as st
-from nodevectors import Node2Vec
-
-def embed_graph(G):
-    if G.number_of_nodes() == 0:
-        return [], []
-    UG = G.to_undirected()
-    node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
-    embeddings = node2vec.fit_transform(UG)
-    nodes = list(UG.nodes)
-    return nodes, embeddings
-
+    def embed_graph(G):
+        if G.number_of_nodes() == 0:
+            return [], []
+        UG = G.to_undirected()
+        node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
+        embeddings = node2vec.fit_transform(UG)
+        nodes = list(UG.nodes)
+        return nodes, embeddings
 
     def cluster_with_hdbscan(embeddings):
         if len(embeddings) == 0:
@@ -761,7 +757,9 @@ def embed_graph(G):
         plt.grid(True, alpha=0.14)
         st.pyplot(plt)
 
-    if st.button("Cluster & Visualize - BTC"):
+    # THIS BUTTON WORKS CONSISTENTLY
+    cluster_btn = st.button("Cluster & Visualize - BTC")
+    if cluster_btn:
         with st.spinner("Fetching and clustering transactions..."):
             txs = fetch_txs(wallet)
             if not txs:
@@ -1172,6 +1170,7 @@ else:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
+
 
 
 
