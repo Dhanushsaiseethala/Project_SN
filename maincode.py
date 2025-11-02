@@ -91,6 +91,7 @@ st.sidebar.markdown("""
             font-size: 1.1em;
             font-weight: 800;
             color: #FFFFFF !important;
+            text-colour: #FFFFFF !important;
             cursor: pointer;
             transition: background 0.15s, border 0.15s;
         }
@@ -1167,6 +1168,7 @@ else:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
+
 
 
 
