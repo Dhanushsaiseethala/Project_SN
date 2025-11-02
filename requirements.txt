@@ -7,6 +7,8 @@ numpy
 nodevectors
 hdbscan
 scikit-learn
+networkx==2.8.8
+
 
 
 
