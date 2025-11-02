@@ -90,7 +90,7 @@ st.sidebar.markdown("""
             border: 2.2px solid #20244C;
             font-size: 1.1em;
             font-weight: 800;
-            color: #E9F9FF !important;
+            color: #FFFFFF !important;
             cursor: pointer;
             transition: background 0.15s, border 0.15s;
         }
