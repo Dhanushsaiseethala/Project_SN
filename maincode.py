@@ -564,10 +564,12 @@ def eth_transaction_clustering():
                 G.add_edge(from_addr, to_addr, value=value, tx_hash=tx_hash)
         return G
 
+import streamlit as st
+from nodevectors import Node2Vec
+
 def embed_graph(G):
     if G.number_of_nodes() == 0:
         return [], []
-    # Convert to undirected graph (recommended by nodevectors for Node2Vec)
     UG = G.to_undirected()
     node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
     embeddings = node2vec.fit_transform(UG)
@@ -699,10 +701,12 @@ def btc_transaction_clustering():
                     G.add_edge(src, dest, value=val, txid=txid, timestamp=ts)
         return G
 
+import streamlit as st
+from nodevectors import Node2Vec
+
 def embed_graph(G):
     if G.number_of_nodes() == 0:
         return [], []
-    # Convert to undirected graph (recommended by nodevectors for Node2Vec)
     UG = G.to_undirected()
     node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
     embeddings = node2vec.fit_transform(UG)
@@ -1168,6 +1172,7 @@ else:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
+
 
 
 
