@@ -565,30 +565,7 @@ def eth_address_clustering():
         st.markdown("#### Address Clusters Table")
         st.dataframe(df, use_container_width=True)
         st.download_button("Download Address Clusters CSV", df.to_csv(index=False), "eth_address_clusters.csv")
-import openai
 
-# Set your API key securely, for example from environment variable
-openai.api_key = "YOUR_API_KEY"
-
-def chat_with_gpt(messages):
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=messages
-    )
-    return response.choices[0].message.content
-
-if __name__ == "__main__":
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
-    ]
-    while True:
-        user_input = input("User: ")
-        if user_input.lower() in {"exit", "quit"}:
-            break
-        messages.append({"role": "user", "content": user_input})
-        assistant_reply = chat_with_gpt(messages)
-        print(f"ChatGPT: {assistant_reply}")
-        messages.append({"role": "assistant", "content": assistant_reply})
 
 # -------- Bitcoin Transaction Clustering --------
 import streamlit as st
@@ -1037,6 +1014,30 @@ st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
 
 
+import openai
+
+# Set your API key securely, for example from environment variable
+openai.api_key = "YOUR_API_KEY"
+
+def chat_with_gpt(messages):
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=messages
+    )
+    return response.choices[0].message.content
+
+if __name__ == "__main__":
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+    ]
+    while True:
+        user_input = input("User: ")
+        if user_input.lower() in {"exit", "quit"}:
+            break
+        messages.append({"role": "user", "content": user_input})
+        assistant_reply = chat_with_gpt(messages)
+        print(f"ChatGPT: {assistant_reply}")
+        messages.append({"role": "assistant", "content": assistant_reply})
 
 
 
