@@ -521,28 +521,8 @@ def btc_bridge_finder():
     st.info("Bitcoin Bridge transaction finder not implemented yet.")
 
 # -------- Ethereum Transaction Clustering --------
-# -------- Ethereum Transaction Clustering --------
 def eth_transaction_clustering():
-    st.markdown("""
-    <style>
-    .stApp {background-color: #161622;}
-    h1, h4, .stMarkdown, .stDataFrame, .stTable { color:#EAEAEA;}
-    .stTextInput label div, .stTextInput label { color:#EAEAEA !important; font-weight:650;}
-    .stTextInput>div>div>input {background: #1E222A !important; color: #00ffc3; font-size: 17px;}
-    .stButton>button {background-color: #00BFFF; color: #191c22 !important; border: none; font-weight: 700;}
-    .stDataFrame, .stTable {background: #1E222A; color: #fff;}
-    hr {border: 1.5px solid #00BFFF;}
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div style="display:flex; align-items:center; gap:18px;">
-        <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=026" width="34"/>
-        <h1 style="color:#00BFFF; font-family:monospace;">Ethereum Transaction Clustering</h1>
-    </div>
-    <hr>
-    """, unsafe_allow_html=True)
-
+    st.markdown('<h2 style="color:#00BFFF">Ethereum Transaction Clustering</h2><hr>', unsafe_allow_html=True)
     wallet = st.text_input("Ethereum Wallet Address for Clustering", value="", max_chars=42)
 
     def fetch_eth_txs_v2(wallet):
@@ -613,9 +593,7 @@ def eth_transaction_clustering():
         plt.grid(True, alpha=0.3)
         st.pyplot(plt)
 
-    # THIS ENSURES BUTTON IS ALWAYS THERE
-    cluster_btn = st.button("Cluster & Visualize - ETH")
-    if cluster_btn:
+    if st.button("Cluster & Visualize - ETH"):
         with st.spinner("Fetching and clustering transactions..."):
             txs = fetch_eth_txs_v2(wallet)
             if not txs:
@@ -631,42 +609,12 @@ def eth_transaction_clustering():
                     st.markdown("#### Address Clusters Table")
                     st.dataframe(df, use_container_width=True)
                     st.download_button("Download Address Clusters CSV", df.to_csv(index=False), "eth_address_hdbscan_clusters.csv")
-                    edge_data = []
-                    for edge in G.edges(data=True):
-                        from_addr, to_addr, data = edge
-                        edge_data.append({
-                            "from_address": from_addr,
-                            "to_address": to_addr,
-                            "value_eth": data.get('value', 0),
-                            "tx_hash": data.get('tx_hash', 'N/A')
-                        })
-                    edge_df = pd.DataFrame(edge_data)
-                    st.markdown("#### Transaction Flow Table")
-                    st.dataframe(edge_df, use_container_width=True)
-                    st.download_button("Download Flow Table CSV", edge_df.to_csv(index=False), "eth_transaction_links.csv")
+
+
 
 # -------- Bitcoin Transaction Clustering --------
 def btc_transaction_clustering():
-    st.markdown("""
-    <style>
-    .stApp {background-color: #161622;}
-    h1, h4, .stMarkdown, .stDataFrame, .stTable { color:#EAEAEA;}
-    .stTextInput label div, .stTextInput label { color:#EAEAEA !important; font-weight:650;}
-    .stTextInput>div>div>input {background: #1E222A !important; color: #00ffc3; font-size: 17px;}
-    .stButton>button {background-color: #00BFFF; color: #191c22 !important; border: none; font-weight: 700;}
-    .stDataFrame, .stTable {background: #1E222A; color: #fff;}
-    hr {border: 1.5px solid #00BFFF;}
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div style="display:flex; align-items:center; gap:18px;">
-        <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=026" width="34"/>
-        <h1 style="color:#00BFFF; font-family:monospace;">Bitcoin Transaction Clustering</h1>
-    </div>
-    <hr>
-    """, unsafe_allow_html=True)
-
+    st.markdown('<h2 style="color:#00BFFF">Bitcoin Transaction Clustering</h2><hr>', unsafe_allow_html=True)
     wallet = st.text_input("Bitcoin Wallet Address for Clustering", value="", max_chars=42)
     MAX_TXS = 100
 
@@ -757,9 +705,7 @@ def btc_transaction_clustering():
         plt.grid(True, alpha=0.14)
         st.pyplot(plt)
 
-    # THIS BUTTON WORKS CONSISTENTLY
-    cluster_btn = st.button("Cluster & Visualize - BTC")
-    if cluster_btn:
+    if st.button("Cluster & Visualize - BTC"):
         with st.spinner("Fetching and clustering transactions..."):
             txs = fetch_txs(wallet)
             if not txs:
@@ -775,19 +721,6 @@ def btc_transaction_clustering():
                     st.markdown("#### Address Clusters Table")
                     st.dataframe(df, use_container_width=True)
                     st.download_button("Download Address Clusters CSV", df.to_csv(index=False), "btc_address_hdbscan_clusters.csv")
-                    edge_data = []
-                    for edge in G.edges(data=True):
-                        from_addr, to_addr, data = edge
-                        edge_data.append({
-                            "from_address": from_addr,
-                            "to_address": to_addr,
-                            "value_btc": data.get('value', 0),
-                            "txid": data.get('txid', 'N/A')
-                        })
-                    edge_df = pd.DataFrame(edge_data)
-                    st.markdown("#### Transaction Flow Table")
-                    st.dataframe(edge_df, use_container_width=True)
-                    st.download_button("Download Flow Table CSV", edge_df.to_csv(index=False), "btc_transaction_links.csv")
 
 # -------- Bitcoin Suspicious Transaction Analyzer --------
 def btc_suspicious_analyzer():
@@ -1170,6 +1103,7 @@ else:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
+
 
 
 
