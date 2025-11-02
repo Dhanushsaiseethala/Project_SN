@@ -521,11 +521,11 @@ def btc_bridge_finder():
     st.info("Bitcoin Bridge transaction finder not implemented yet.")
 
 # -------- Ethereum Transaction Clustering --------
-def eth_transaction_clustering():
-    st.markdown('<h2 style="color:#00BFFF">Ethereum Transaction Clustering</h2><hr>', unsafe_allow_html=True)
-    wallet = st.text_input("Ethereum Wallet Address for Clustering", value="", max_chars=42)
+def eth_address_clustering():
+    st.markdown('<h2 style="color:#00BFFF">Ethereum Address Clustering (Community Detection)</h2><hr>', unsafe_allow_html=True)
+    wallet = st.text_input("Ethereum Wallet Address", value="", max_chars=42)
 
-    def fetch_eth_txs_v2(wallet):
+    def fetch_eth_txs(wallet):
         url = f"{BASE_URL_ETH_V2}?chainid=1&module=account&action=txlist&address={wallet}&page=1&offset=10000&sort=asc&apikey={ETHERSCAN_API_KEY}"
         r = requests.get(url)
         data = r.json()
@@ -539,83 +539,42 @@ def eth_transaction_clustering():
         for tx in txs:
             from_addr = tx.get("from", "").lower()
             to_addr = tx.get("to", "").lower() if tx.get("to") else None
-            value = int(tx.get("value", 0)) / 1e18
-            tx_hash = tx.get("hash", "")
             if from_addr and to_addr:
-                G.add_edge(from_addr, to_addr, value=value, tx_hash=tx_hash)
+                G.add_edge(from_addr, to_addr)
         return G
 
-    def embed_graph(G):
-        if G.number_of_nodes() == 0:
-            return [], []
-        UG = G.to_undirected()
-        node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
-        embeddings = node2vec.fit_transform(UG)
-        nodes = list(UG.nodes)
-        return nodes, embeddings
-
-    def cluster_with_hdbscan(embeddings):
-        if len(embeddings) == 0:
-            return []
-        clusterer = hdbscan.HDBSCAN(min_cluster_size=2)
-        labels = clusterer.fit_predict(embeddings)
-        return labels
-
-    def visualize_clusters_with_edges(G, nodes, embeddings, labels):
-        if len(embeddings) == 0 or len(nodes) == 0:
-            st.warning("No data to visualize.")
-            return
-        arr = np.array(embeddings)
-        perplexity = min(30, len(arr)-1)
-        if perplexity < 1:
-            st.warning("Not enough samples for TSNE visualization.")
-            return
-        tsne = TSNE(n_components=2, random_state=42, perplexity=perplexity)
-        reduced = tsne.fit_transform(arr)
-        pos = {node: (reduced[i, 0], reduced[i, 1]) for i, node in enumerate(nodes)}
-        plt.figure(figsize=(16, 12))
-        for edge in G.edges():
-            from_addr, to_addr = edge
-            if from_addr in pos and to_addr in pos:
-                x_coords = [pos[from_addr][0], pos[to_addr][0]]
-                y_coords = [pos[from_addr][1], pos[to_addr][1]]
-                plt.arrow(x_coords[0], y_coords[0],
-                         x_coords[1] - x_coords[0], y_coords[1] - y_coords[0],
-                         head_width=1.5, head_length=2, fc='gray', ec='gray', alpha=0.6,
-                         length_includes_head=True)
-        scatter = plt.scatter(reduced[:,0], reduced[:,1], c=labels, cmap="tab10", s=100, alpha=0.8, edgecolors='black', linewidth=0.5)
-        plt.colorbar(scatter, label='Cluster ID')
-        plt.title("Ethereum Address Clusters with Transaction Links")
-        for i, node in enumerate(nodes):
-            plt.text(reduced[i,0], reduced[i,1] + 2, node[:8], fontsize=8, alpha=0.8, ha='center')
-        plt.xlabel("TSNE Dimension 1")
-        plt.ylabel("TSNE Dimension 2")
-        plt.grid(True, alpha=0.3)
-        st.pyplot(plt)
-
     if st.button("Cluster & Visualize - ETH"):
-        with st.spinner("Fetching and clustering transactions..."):
-            txs = fetch_eth_txs_v2(wallet)
-            if not txs:
-                st.error("No transactions found. Stopping.")
-            else:
-                G = build_graph_from_txs(txs)
-                st.success(f"Built graph with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
-                nodes, embeddings = embed_graph(G)
-                labels = cluster_with_hdbscan(embeddings)
-                visualize_clusters_with_edges(G, nodes, embeddings, labels)
-                if labels is not None and len(labels) == len(nodes):
-                    df = pd.DataFrame({"address": nodes, "cluster": labels})
-                    st.markdown("#### Address Clusters Table")
-                    st.dataframe(df, use_container_width=True)
-                    st.download_button("Download Address Clusters CSV", df.to_csv(index=False), "eth_address_hdbscan_clusters.csv")
-
-
+        txs = fetch_eth_txs(wallet)
+        G = build_graph_from_txs(txs)
+        if G.number_of_nodes() == 0:
+            st.warning("No data to analyze.")
+            return
+        communities = nx.algorithms.community.label_propagation_communities(G.to_undirected())
+        clusters = {}
+        for i, comm in enumerate(communities):
+            for node in comm:
+                clusters[node] = i
+        color_map = [clusters.get(node, 0) for node in G.nodes()]
+        pos = nx.spring_layout(G, seed=42)
+        plt.figure(figsize=(14, 9))
+        nx.draw(G, pos, with_labels=True, node_color=color_map, cmap="tab20", node_size=400, edge_color="gray")
+        plt.title("Ethereum Address Clusters (NetworkX Label Propagation)")
+        st.pyplot(plt)
+        df = pd.DataFrame({"address": list(G.nodes()), "cluster": color_map})
+        st.markdown("#### Address Clusters Table")
+        st.dataframe(df, use_container_width=True)
+        st.download_button("Download Address Clusters CSV", df.to_csv(index=False), "eth_address_clusters.csv")
 
 # -------- Bitcoin Transaction Clustering --------
-def btc_transaction_clustering():
-    st.markdown('<h2 style="color:#00BFFF">Bitcoin Transaction Clustering</h2><hr>', unsafe_allow_html=True)
-    wallet = st.text_input("Bitcoin Wallet Address for Clustering", value="", max_chars=42)
+import streamlit as st
+import requests
+import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
+
+def btc_address_clustering():
+    st.markdown('<h2 style="color:#00BFFF">Bitcoin Address Clustering (Community Detection)</h2><hr>', unsafe_allow_html=True)
+    wallet = st.text_input("Bitcoin Wallet Address", value="", max_chars=42)
     MAX_TXS = 100
 
     def fetch_txs(address, max_count=MAX_TXS):
@@ -629,7 +588,6 @@ def btc_transaction_clustering():
         G = nx.DiGraph()
         for tx in txs:
             txid = tx.get("txid")
-            ts = tx.get("status", {}).get("block_time", None)
             tx_inputs = tx.get("vin", [])
             tx_outputs = tx.get("vout", [])
             in_addrs = set()
@@ -640,87 +598,36 @@ def btc_transaction_clustering():
             value_map = {}
             for out in tx_outputs:
                 dest = out.get("scriptpubkey_address")
-                value = out.get("value", 0) / 1e8
                 if dest:
                     value_map.setdefault(dest, 0)
-                    value_map[dest] += value
             for src in in_addrs:
-                for dest, val in value_map.items():
-                    G.add_edge(src, dest, value=val, txid=txid, timestamp=ts)
+                for dest in value_map:
+                    G.add_edge(src, dest)
         return G
 
-    def embed_graph(G):
-        if G.number_of_nodes() == 0:
-            return [], []
-        UG = G.to_undirected()
-        node2vec = Node2Vec(n_components=16, walklen=10, epochs=100)
-        embeddings = node2vec.fit_transform(UG)
-        nodes = list(UG.nodes)
-        return nodes, embeddings
-
-    def cluster_with_hdbscan(embeddings):
-        if len(embeddings) == 0:
-            return []
-        clusterer = hdbscan.HDBSCAN(min_cluster_size=2)
-        labels = clusterer.fit_predict(embeddings)
-        return labels
-
-    def visualize_clusters_with_edges(G, nodes, embeddings, labels):
-        if len(embeddings) == 0 or len(nodes) == 0:
-            st.warning("No data to visualize.")
-            return
-        arr = np.array(embeddings)
-        perplexity = min(30, len(arr)-1)
-        if perplexity < 1:
-            st.warning("Not enough samples for TSNE visualization.")
-            return
-        tsne = TSNE(n_components=2, random_state=42, perplexity=perplexity)
-        reduced = tsne.fit_transform(arr)
-        pos = {node: (reduced[i, 0], reduced[i, 1]) for i, node in enumerate(nodes)}
-        plt.figure(figsize=(16, 12))
-        for from_addr, to_addr in G.edges():
-            if from_addr in pos and to_addr in pos:
-                x1, y1 = pos[from_addr]
-                x2, y2 = pos[to_addr]
-                plt.annotate("",
-                    xy=(x2, y2), xytext=(x1, y1),
-                    arrowprops=dict(
-                        arrowstyle="->,head_length=2,head_width=1.2",
-                        color='orange', lw=2.0, alpha=0.7),
-                    annotation_clip=False
-                )
-        scatter = plt.scatter(
-            reduced[:,0], reduced[:,1], c=labels, cmap="tab10", s=180, alpha=0.95,
-            edgecolors='black', linewidth=1.3, zorder=10
-        )
-        plt.colorbar(scatter, label='Cluster ID')
-        plt.title("Bitcoin Address Clusters with Transaction Links")
-        for i, node in enumerate(nodes):
-            plt.text(
-                reduced[i,0], reduced[i,1] + 2, node[:8], fontsize=10, weight='bold',
-                alpha=0.95, ha='center', zorder=15
-            )
-        plt.xlabel("TSNE Dimension 1")
-        plt.ylabel("TSNE Dimension 2")
-        plt.grid(True, alpha=0.14)
-        st.pyplot(plt)
-
     if st.button("Cluster & Visualize - BTC"):
-        with st.spinner("Fetching and clustering transactions..."):
-            txs = fetch_txs(wallet)
-            if not txs:
-                st.error("No transactions found. Stopping.")
-            else:
-                G = build_graph_from_txs(txs)
-                st.success(f"Built graph with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
-                nodes, embeddings = embed_graph(G)
-                labels = cluster_with_hdbscan(embeddings)
-                visualize_clusters_with_edges(G, nodes, embeddings, labels)
-                if labels is not None and len(labels) == len(nodes):
-                    df = pd.DataFrame({"address": nodes, "cluster": labels})
-                    st.markdown("#### Address Clusters Table")
-                    st.dataframe(df, use_container_width=True)
-                    st.download_button("Download Address Clusters CSV", df.to_csv(index=False), "btc_address_hdbscan_clusters.csv")
+        txs = fetch_txs(wallet)
+        G = build_graph_from_txs(txs)
+        if G.number_of_nodes() == 0:
+            st.warning("No data to analyze.")
+            return
+        # Community detection (Label Propagation - works on directed and undirected)
+        communities = nx.algorithms.community.label_propagation_communities(G.to_undirected())
+        clusters = {}
+        for i, comm in enumerate(communities):
+            for node in comm:
+                clusters[node] = i
+        color_map = [clusters.get(node, 0) for node in G.nodes()]
+        pos = nx.spring_layout(G, seed=42)
+        plt.figure(figsize=(14, 9))
+        nx.draw(G, pos, with_labels=True, node_color=color_map, cmap="tab20", node_size=400, edge_color="gray")
+        plt.title("Bitcoin Address Clusters (NetworkX Label Propagation)")
+        st.pyplot(plt)
+        df = pd.DataFrame({"address": list(G.nodes()), "cluster": color_map})
+        st.markdown("#### Address Clusters Table")
+        st.dataframe(df, use_container_width=True)
+        st.download_button("Download Address Clusters CSV", df.to_csv(index=False), "btc_address_clusters.csv")
+
 
 # -------- Bitcoin Suspicious Transaction Analyzer --------
 def btc_suspicious_analyzer():
@@ -1103,6 +1010,7 @@ else:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
+
 
 
 
