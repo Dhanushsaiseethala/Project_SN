@@ -41,7 +41,7 @@ st.markdown("""
 
 st.markdown("""
     <style>
-        .module{background:#1b2440;border-radius:16px;padding:22px;box-shadow:0 2px 18px #0485c730;}
+        .module{background:#FFFFFF;border-radius:16px;padding:22px;box-shadow:0 2px 18px #0485c730;}
         .link-btn{border-radius:50%;width:62px;height:62px;display:inline-flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;margin:12px;border:2.8px solid #1c3247;background:#00bfff;color:#191a22;text-decoration:none;transition:background 0.14s}
         .link-btn:hover{background:#FFD700;color:#191a22;border:3px solid #FFD700;text-decoration:none;}
     </style>
@@ -1035,6 +1035,7 @@ else:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.caption("© 2025 Crypto Multi-Utility Dashboard")
+
 
 
 
